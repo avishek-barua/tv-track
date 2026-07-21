@@ -1,0 +1,47 @@
+# Second brain — RERUN (the project)
+
+## Concept
+A personal clone of TV Time (a show/movie tracking app shutting down), built to run locally, single user, no accounts. Core loop: track shows, mark episodes watched, see what's next, get stats, get AI recommendations.
+
+## Reference: how the real TV Time app works (from user's screenshots)
+- **Nav**: 3 tabs — Shows, Movies, Explore. (RERUN adds Stats and AI as 2 more.)
+- **Watch List** (per Shows/Movies) has status-grouped sections, in this order when scrolled from top:
+  - Watched History (most recent watched episodes, reverse chronological)
+  - Watch Next (shows with an unwatched aired episode, recently active)
+  - Haven't watched for a while (same but stale — no activity in a while)
+  - Haven't started (added but never watched)
+- **Row format**: poster thumbnail · show name pill (tappable) · `S01 | E07 +6` (season|episode, +N more unwatched) · episode title · checkmark circle (white outline = to-watch, filled = watched)
+- **Upcoming tab**: episodes grouped by Yesterday / Today / Tomorrow / then absolute dates, with badges: NEW, AIRED, LATEST, PREMIERE
+- **Explore**: Feed / Discover / Groups / Activity sub-tabs. Discover has "Top shows for you" and "Trending shows/movies" horizontal poster rows with a "+" quick-add overlay, plus a "Browse all shows" CTA.
+- **Show detail**: banner image, thin yellow progress bar under it (% watched), About/Episodes tabs.
+  - About: where-to-watch, cast row, "people also watched," community rating line graph, comments
+  - Episodes: "Continue tracking" horizontal strip of next few unwatched, then all-episodes grouped by collapsible season
+- **Episode detail** (tap an episode): image, code+title, air date, watched toggle, "where did you watch" (network/theater/other/unofficial icons), 5-star rating (Bad/OK/Good/Great/Wow), then a 12-emoji "how did you feel" mood grid (Shocked, Frustrated, Sad, Reflective, Touched, Amused, Scared, Bored, Understood, Thrilled, Confused, Tense), "who was your favorite" cast picker, comments.
+- **Movie detail**: same pattern plus a favorite heart.
+- **Lists**: custom user-created collections (not yet built in RERUN — noted as a possible future addition).
+- **Stats** (very deep in the real app): time spent watching formatted as months/days/hours, weekly/monthly bar chart toggle, total episodes watched, biggest marathons table, added-shows count, top genres table, top networks table, voted ratings, character votes, comments stats, remaining episodes, upcoming-episodes chart, catch-up rate (episodes/week), time-to-watch (hours), predicted catch-up date, and several badge categories (app badges, watch badges per-show, ratings badges, comment badges, follow badges).
+
+## RERUN's scope vs. the reference
+Built: Shows/Movies/Explore/Stats/AI nav, Watch List grouping, Upcoming grouping with badges, episode & movie detail with rating/mood/where-watched, Discover grid, expanded stats (time watched, monthly chart, marathons, genres, networks, remaining episodes, catch-up rate + predicted date, 4 achievement badges).
+
+Deliberately dropped (social/multi-user features from the original, not relevant to a personal single-user tool): Feed, Groups, Activity, following/followers, comments, community ratings, "people also watched," custom Lists.
+
+Added beyond the original (the two features the user explicitly asked for): AI-powered recommendations tab (calls Claude with tracked shows + watched genres), and the badges/achievements system in Stats.
+
+## Data sources
+- Shows/episodes: TVmaze API — free, no key, will outlive TV Time itself
+- Movies: no free API with adequate data available without a key → manual entry only
+- AI recs: direct call to Anthropic's API (works in Claude's artifact sandbox; needs a small proxy backend to run safely outside it — see SETUP.md)
+
+## File map
+- `rerun.jsx` — the app (single React component)
+- `SETUP.md` — how to run it locally (Vite scaffold, localStorage swap, AI backend note)
+- `CLAUDE.md` — conventions for future Claude Code sessions on this repo
+- `second-brain-chat.md` — narrative of this build conversation
+- `second-brain-project.md` — this file
+
+## Possible future additions (not requested yet, just noted)
+- Custom Lists (like TV Time's user-created collections)
+- A tiny backend so the AI recs feature works outside claude.ai without exposing an API key
+- A real movie data source if a free/keyed API becomes worth adding
+- Data export/import (JSON) since everything currently lives in one browser's storage
