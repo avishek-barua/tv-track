@@ -30,18 +30,30 @@ Added beyond the original (the two features the user explicitly asked for): AI-p
 
 ## Data sources
 - Shows/episodes: TVmaze API — free, no key, will outlive TV Time itself
-- Movies: no free API with adequate data available without a key → manual entry only
-- AI recs: direct call to Anthropic's API (works in Claude's artifact sandbox; needs a small proxy backend to run safely outside it — see SETUP.md)
+- Movies: no free API with adequate data available without a key → manual entry only; "search" for movies searches the user's own added titles, not an external catalog
+- AI recs: direct call to Anthropic's API (works in Claude's artifact sandbox; needs a route on `server.mjs` to run safely outside it — see SETUP.md)
+- Persistence: `server.mjs` (Express) reading/writing `db.json` on disk, replacing the earlier `localStorage`-based approach
 
 ## File map
-- `rerun.jsx` — the app (single React component)
-- `SETUP.md` — how to run it locally (Vite scaffold, localStorage swap, AI backend note)
+- `App.jsx` — the app (single React component), now the canonical/maintained file, running locally via Vite
+- `server.mjs` — the JSON-database server (`GET/POST /api/data`, writes `db.json`)
+- `rerun.jsx` — superseded; the original Claude-artifact version, kept only for history
+- `SETUP.md` — how to run it locally (Vite scaffold, `server.mjs`, AI backend note)
 - `CLAUDE.md` — conventions for future Claude Code sessions on this repo
+- `requirements.md` — running checklist of user-requested behavior fixes/additions (user-authored, updated as items land)
 - `second-brain-chat.md` — narrative of this build conversation
 - `second-brain-project.md` — this file
 
+## Interaction details established since first build
+- **Nav persistence**: bottom nav shows on every screen, including detail views; tapping it exits whatever detail view is open.
+- **Skipped-episode guard**: marking an episode watched checks for earlier unwatched episodes of the same show first and offers to mark them too, rather than letting gaps happen silently — a small usability improvement over just letting people mark anything in any order.
+- **Watch history placement**: kept literally above Watch Next in the DOM (true to the original), but the screen auto-scrolls past it so Watch Next is what you see first — history is "scroll up to see it," not hidden away in a separate tab.
+- **Discover structure**: three sections — Top recommended for you (genre-overlap personalization), Shows (general trending), Movies (manual-add prompt, no fake data since there's no free catalog API for movies).
+- **Search structure**: mirrors Discover — Shows queries TVmaze live, Movies filters the user's own tracked list by title (with a shortcut to add a new one if nothing matches).
+- **Persistence failure is visible, not silent**: a `dbError` state surfaces a red banner if `server.mjs` isn't reachable, specifically because the earlier localStorage bug failed silently and went unnoticed for a while.
+
 ## Possible future additions (not requested yet, just noted)
 - Custom Lists (like TV Time's user-created collections)
-- A tiny backend so the AI recs feature works outside claude.ai without exposing an API key
+- An `/api/recommend` route on `server.mjs` so the AI recs feature can hold the Anthropic key server-side
 - A real movie data source if a free/keyed API becomes worth adding
-- Data export/import (JSON) since everything currently lives in one browser's storage
+- Data export/import or backup rotation for `db.json`, since it's currently a single unversioned file

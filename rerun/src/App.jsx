@@ -8,7 +8,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip
 } from "recharts";
 
-const STORAGE_KEY = "rerun-data-v2";
+const DB_API = "http://localhost:4000/api/data";
 const API = "https://api.tvmaze.com";
 const GENRE_COLORS = ["#FFB238", "#4FD8C4", "#FF5C5C", "#8B7FE8", "#6FCF97", "#F2994A", "#56CCF2"];
 const MOODS = [
@@ -64,19 +64,25 @@ export default function Rerun() {
   const [detail, setDetail] = useState(null); // {type:'show'|'episode'|'movie', showId, episodeId, movieId}
 
   const [confirmDialog, setConfirmDialog] = useState(null); // { show, ep, prior }
+  const [dbError, setDbError] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setData(JSON.parse(raw));
-    } catch (e) {}
-    finally { setLoaded(true); }
+    (async () => {
+      try {
+        const res = await fetch(DB_API);
+        if (res.ok) setData(await res.json());
+      } catch (e) { setDbError(true); }
+      finally { setLoaded(true); }
+    })();
   }, []);
 
   const persist = useCallback((next) => {
     setData(next);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }
-    catch (e) { console.error("save failed", e); }
+    fetch(DB_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next)
+    }).then(res => setDbError(!res.ok)).catch(() => setDbError(true));
   }, []);
 
   const ensureEpisodes = useCallback(async (showId) => {
@@ -190,6 +196,9 @@ export default function Rerun() {
     <div className="rr-root">
       <Style />
       <div className="rr-frame">
+        {dbError && (
+          <div className="rr-dbwarn">DB server unreachable at :4000 — changes aren't saving. Run <code>node server.mjs</code>.</div>
+        )}
         <div className="rr-content">
           {!detail && nav === "shows" && (
             <ShowsHome data={data} episodesCache={episodesCache}
@@ -203,6 +212,7 @@ export default function Rerun() {
           )}
           {!detail && nav === "explore" && (
             <ExploreHome data={data} onOpenShow={(id) => setDetail({ type: "show", showId: id })}
+              onOpenMovie={(id) => setDetail({ type: "movie", movieId: id })}
               onAddShow={addShow} onGoToMovies={() => setNav("movies")} />
           )}
           {!detail && nav === "stats" && <StatsView data={data} episodesCache={episodesCache} />}
@@ -586,7 +596,7 @@ function AddMovieForm({ onClose, onAdd }) {
 }
 
 /* ============ EXPLORE ============ */
-function ExploreHome({ data, onOpenShow, onAddShow, onGoToMovies }) {
+function ExploreHome({ data, onOpenShow, onOpenMovie, onAddShow, onGoToMovies }) {
   const [tab, setTab] = useState("discover");
   const [trending, setTrending] = useState(null);
   const [q, setQ] = useState("");
@@ -636,6 +646,14 @@ function ExploreHome({ data, onOpenShow, onAddShow, onGoToMovies }) {
       .map(s => s.show);
   }, [trending, data.watchedLog, data.shows]);
 
+  // No free movie catalog to search, so movie search matches against the
+  // titles the user has already added themselves via the Movies tab.
+  const movieResults = useMemo(() => {
+    if (!q.trim()) return [];
+    const needle = q.trim().toLowerCase();
+    return Object.values(data.movies).filter(m => m.title.toLowerCase().includes(needle));
+  }, [q, data.movies]);
+
   return (
     <div className="rr-view">
       <header className="rr-header"><div className="rr-title">Explore</div></header>
@@ -684,30 +702,58 @@ function ExploreHome({ data, onOpenShow, onAddShow, onGoToMovies }) {
         <>
           <div className="rr-searchbar">
             <Search size={16} />
-            <input value={q} onChange={e => setQ(e.target.value)} placeholder="Find a show…" />
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder="Find a show or your tracked movies…" />
             {loadingSearch && <Loader2 className="spin" size={16} />}
             {q && !loadingSearch && <X size={16} className="rr-clear" onClick={() => setQ("")} />}
           </div>
-          {!q && <EmptyState icon={Search} text="Look up any show." sub="Powered by the TVmaze catalog." />}
-          <div className="rr-searchresults">
-            {results.map(show => {
-              const added = !!data.shows[show.id];
-              return (
-                <div key={show.id} className="rr-searchrow">
-                  <button className="rr-searchrow-main" onClick={() => onOpenShow(show.id)}>
-                    <div className="rr-poster small">{show.image ? <img src={show.image.medium} alt={show.name} /> : <Tv size={16} />}</div>
-                    <div className="rr-searchrow-info">
-                      <div className="rr-searchrow-name">{show.name}</div>
-                      <div className="rr-searchrow-meta">{show.premiered ? show.premiered.slice(0, 4) : "—"} · {(show.genres || []).slice(0, 2).join(", ") || show.status}</div>
+          {!q && <EmptyState icon={Search} text="Look up any show." sub="Shows search the TVmaze catalog. Movies search what you've already added." />}
+
+          {q && (
+            <>
+              <div className="rr-section-label">Shows</div>
+              <div className="rr-searchresults">
+                {results.length === 0 && !loadingSearch && <div className="rr-empty-inline">No shows matched.</div>}
+                {results.map(show => {
+                  const added = !!data.shows[show.id];
+                  return (
+                    <div key={show.id} className="rr-searchrow">
+                      <button className="rr-searchrow-main" onClick={() => onOpenShow(show.id)}>
+                        <div className="rr-poster small">{show.image ? <img src={show.image.medium} alt={show.name} /> : <Tv size={16} />}</div>
+                        <div className="rr-searchrow-info">
+                          <div className="rr-searchrow-name">{show.name}</div>
+                          <div className="rr-searchrow-meta">{show.premiered ? show.premiered.slice(0, 4) : "—"} · {(show.genres || []).slice(0, 2).join(", ") || show.status}</div>
+                        </div>
+                      </button>
+                      <button className={`rr-iconbtn ${added ? "on" : ""}`} onClick={() => onAddShow(show)}>
+                        {added ? <Check size={15} /> : <Plus size={15} />}
+                      </button>
                     </div>
-                  </button>
-                  <button className={`rr-iconbtn ${added ? "on" : ""}`} onClick={() => onAddShow(show)}>
-                    {added ? <Check size={15} /> : <Plus size={15} />}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+
+              <div className="rr-section-label">Movies</div>
+              <div className="rr-searchresults">
+                {movieResults.length === 0 ? (
+                  <div className="rr-moviecta">
+                    <div className="rr-moviecta-text">No tracked movie matches "{q}". Add it manually to start tracking it.</div>
+                    <button className="rr-btn outline small" onClick={onGoToMovies}><Plus size={13} /> Add a movie</button>
+                  </div>
+                ) : movieResults.map(m => (
+                  <div key={m.id} className="rr-searchrow">
+                    <button className="rr-searchrow-main" onClick={() => onOpenMovie(m.id)}>
+                      <div className="rr-poster small movie"><Film size={16} /></div>
+                      <div className="rr-searchrow-info">
+                        <div className="rr-searchrow-name">{m.title}</div>
+                        <div className="rr-searchrow-meta">{(m.genres || []).slice(0, 2).join(", ") || "—"}</div>
+                      </div>
+                    </button>
+                    <span className={`rr-iconbtn ${m.watchedAt ? "on" : ""}`}><Check size={15} /></span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
@@ -1350,6 +1396,7 @@ function Style() {
       .rr-postergrid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
       .rr-posteritem { background:transparent; border:none; cursor:pointer; padding:0; }
 
+      .rr-empty-inline { font-size:12px; color:var(--text-muted); padding:6px 2px 14px; }
       .rr-searchbar { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:14px; color:var(--text-muted); }
       .rr-searchbar input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:14px; font-family:inherit; }
       .rr-clear { cursor:pointer; }
@@ -1480,6 +1527,8 @@ function Style() {
       .rr-dialog-actions { display:flex; gap:8px; }
       .rr-dialog-actions .rr-btn { flex:1; justify-content:center; }
 
+      .rr-dbwarn { background:var(--red); color:#fff; font-size:11px; font-weight:600; text-align:center; padding:6px 10px; }
+      .rr-dbwarn code { background:rgba(0,0,0,0.25); padding:1px 5px; border-radius:4px; }
       .rr-nav { position:sticky; bottom:0; display:flex; background:var(--surface); border-top:1px solid var(--border); padding:8px 4px calc(8px + env(safe-area-inset-bottom,0px)); }
       .rr-navbtn { flex:1; background:transparent; border:none; color:var(--text-muted); display:flex; flex-direction:column; align-items:center; gap:3px; font-size:9.5px; padding:5px 0; cursor:pointer; font-family:inherit; }
       .rr-navbtn.active { color:var(--amber); }

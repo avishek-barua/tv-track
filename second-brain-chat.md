@@ -35,3 +35,22 @@ User wants to run this outside claude.ai. Delivered:
 ## Open threads / things not yet done
 - No backend built yet for the AI recs feature locally — currently just documented as a to-do in SETUP.md
 - No migration path written for old artifact data (`window.storage`) into the local version — user would start fresh locally
+
+## Update — first local dev pass
+User did the Vite scaffold themselves and did the `window.storage` → `localStorage` swap I outlined, but did it as a literal find-replace (`localStorage.get(...)`, `localStorage.set(...)`) — that method signature doesn't exist on `localStorage`, so persistence was silently broken. Caught and fixed while implementing new requirements (now `getItem`/`setItem`, synchronous, no try/catch needed around the call itself).
+
+User sent a `requirements.md` with three asks, all implemented in this pass:
+1. **Bottom nav on every screen** — previously hidden on show/episode/movie detail views. Now always rendered; tapping a nav item exits the detail view.
+2. **Confirm dialog for skipped episodes** — marking an episode watched when earlier episodes of that show are still unwatched now pops a dialog ("Just this one" / "Mark all previous") instead of silently leaving gaps. Centralized as `requestMarkWatched` in `App`, used by the Watch List quick-check, the show detail "continue tracking" row, and the episode detail page's mark-watched button.
+3. **Watch history "out of screen, scroll up to see it"** — kept History above Watch Next in the DOM order (matches the real app) but auto-scrolls the list down to Watch Next on load, so History is one scroll-up away rather than gone.
+
+Also handled the Explore/Discover requirement (split into Shows / Movies / a new "Top recommended for you" section): recommended section ranks the trending pool by genre overlap with what the user's actually watched; Movies section is honest about not having a free catalog API and just prompts to add manually.
+
+`App.jsx` (not `rerun.jsx`) is now the canonical file — delivered back to the user as the fixed/updated version to drop into their local project.
+
+## Update — JSON database + movie search
+User sent a follow-up `requirements.md` with two more asks:
+1. **"implement json database"** — replaced `localStorage` entirely with a real (if tiny) persistence layer: `server.mjs`, a one-file Express server exposing `GET/POST /api/data`, backed by `db.json` on disk. `App.jsx` now loads on mount and POSTs the whole data blob on every change via `fetch`. Added a `dbError` state that shows a red banner in the UI if the server isn't reachable, so a save failure is visible instead of silent (this was the exact failure mode that caused the earlier `localStorage.get/.set` bug to go unnoticed).
+2. **"doesn't search movie"** — Explore's Search tab only ever queried TVmaze (shows only). Since there's no free movie catalog to search externally, movie search now filters the user's own `data.movies` by title and renders as a separate "Movies" section alongside "Shows" results — consistent with how Discover already splits the two. Shows an "Add a movie" shortcut when nothing local matches the query.
+
+Delivered `server.mjs` as a new file alongside the updated `App.jsx`. Updated `SETUP.md` to walk through running the server instead of the old localStorage-swap step.
