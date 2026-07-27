@@ -11,7 +11,7 @@ Running locally now (Vite + React), not in claude.ai anymore. `App.jsx` is the s
 - lucide-react (icons), recharts (charts)
 - TVmaze API (`https://api.tvmaze.com`) for show/episode data — free, no key
 - No movie API key available — movies are manually entered by the user; movie "search" matches against the user's own added titles, not an external catalog
-- Persistence: `server.mjs`, a tiny Express server serving `GET/POST http://localhost:4000/api/data`, backed by `db.json` on disk. `App.jsx` fetches on load and POSTs the full data blob on every change (no partial updates). Shows a red banner (`dbError` state) if the server is unreachable rather than failing silently.
+- Persistence: `server.mjs`, a tiny Express server serving `GET/POST http://localhost:4000/api/data` locally (port comes from `process.env.PORT` when deployed), backed by `db.json` on disk. `App.jsx` fetches on load and POSTs the full data blob on every change (no partial updates). The frontend's API base URL is `import.meta.env.VITE_API_URL`, falling back to localhost — set this env var when deploying. Shows a red banner (`dbError` state) if the server is unreachable rather than failing silently.
 
 ## Data model
 ```

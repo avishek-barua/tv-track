@@ -33,5 +33,5 @@ app.post("/api/data", async (req, res) => {
   }
 });
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`RERUN db server → http://localhost:${PORT}  (writing to ${DB_PATH})`));

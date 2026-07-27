@@ -8,7 +8,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip
 } from "recharts";
 
-const DB_API = "http://localhost:4000/api/data";
+const DB_API = import.meta.env.VITE_API_URL || "http://localhost:4000/api/data";
 const API = "https://api.tvmaze.com";
 const GENRE_COLORS = ["#FFB238", "#4FD8C4", "#FF5C5C", "#8B7FE8", "#6FCF97", "#F2994A", "#56CCF2"];
 const MOODS = [

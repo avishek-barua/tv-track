@@ -6,6 +6,8 @@
 ## shows
 - [x] when marking the latest episode watched, if earlier episodes aren't marked, show a dialog offering to mark those too ("Just this one" / "Mark all previous")
 - [x] watch history sits above "Watch next" in the list, out of view by default — the screen scrolls down past it on load, so you scroll up to see it, matching the original
+- [ ] when a episode of a show is marked as watched, add it in watch list.
+- [ ] make watch history in shows tab outside view point. to see it we have to scroll up.
 
 ## Explore
 ### discover
