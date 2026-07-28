@@ -300,6 +300,19 @@ function ShowsHome({ data, episodesCache, onOpenShow, onQuickWatch }) {
   const shows = Object.values(data.shows);
   const watchNextRef = useRef(null);
   const scrolledRef = useRef(false);
+  // Ref callback instead of useEffect: the Watch Next section only exists once
+  // episodesCache has loaded for at least one show, which happens on a later
+  // render than mount — a useEffect keyed on groups.history.length missed that
+  // update entirely since history (built straight from watchedLog) doesn't
+  // change when episodesCache arrives. A callback ref fires whenever the node
+  // actually appears, whichever render that is.
+  const setWatchNextRef = useCallback((node) => {
+    watchNextRef.current = node;
+    if (node && !scrolledRef.current) {
+      node.scrollIntoView({ block: "start" });
+      scrolledRef.current = true;
+    }
+  }, []);
 
   const groups = useMemo(() => {
     const history = [];
@@ -346,12 +359,7 @@ function ShowsHome({ data, episodesCache, onOpenShow, onQuickWatch }) {
 
   // "Watched history" sits above "Watch next" in the DOM (matches TV Time), but
   // is scrolled out of view by default — scroll up to see it, like the original.
-  useEffect(() => {
-    if (tab === "list" && !scrolledRef.current && groups.history.length > 0 && watchNextRef.current) {
-      watchNextRef.current.scrollIntoView({ block: "start" });
-      scrolledRef.current = true;
-    }
-  }, [tab, groups.history.length]);
+  // (handled by setWatchNextRef callback above, not an effect — see its comment)
 
   return (
     <div className="rr-view">
@@ -383,7 +391,7 @@ function ShowsHome({ data, episodesCache, onOpenShow, onQuickWatch }) {
               </GroupSection>
             )}
             {groups.watchNext.length > 0 && (
-              <GroupSection label="Watch next" grid={grid} sectionRef={watchNextRef}>
+              <GroupSection label="Watch next" grid={grid} sectionRef={setWatchNextRef}>
                 {groups.watchNext.map(({ show, nextEp, remaining }) => (
                   <ShowRow key={show.id} grid={grid} show={show} image={show.image}
                     code={epCode(nextEp.season, nextEp.number)} plus={remaining} title={nextEp.name}
@@ -393,7 +401,7 @@ function ShowsHome({ data, episodesCache, onOpenShow, onQuickWatch }) {
               </GroupSection>
             )}
             {groups.stale.length > 0 && (
-              <GroupSection label="Haven't watched for a while" grid={grid} sectionRef={groups.watchNext.length === 0 ? watchNextRef : null}>
+              <GroupSection label="Haven't watched for a while" grid={grid} sectionRef={groups.watchNext.length === 0 ? setWatchNextRef : null}>
                 {groups.stale.map(({ show, nextEp, remaining }) => (
                   <ShowRow key={show.id} grid={grid} show={show} image={show.image}
                     code={epCode(nextEp.season, nextEp.number)} plus={remaining} title={nextEp.name}
@@ -904,14 +912,18 @@ function ShowDetail({ showId, data, episodesCache, castCache, ensureEpisodes, en
                             {seasonEps.map(ep => {
                               const w = data.watchedLog[ep.id];
                               return (
-                                <button key={ep.id} className="rr-eprow" onClick={() => onOpenEpisode(showId, ep.id)}>
-                                  <div className="rr-poster small">{fullShow.image ? <img src={fullShow.image.medium} alt="" /> : <Tv size={14} />}</div>
-                                  <div className="rr-eprow-info">
-                                    <div className="rr-eprow-code">{epCode(ep.season, ep.number)}</div>
-                                    <div className="rr-eprow-title">{ep.name}</div>
-                                  </div>
-                                  <span className={`rr-dotcheck ${w ? "on" : ""}`}><Check size={12} /></span>
-                                </button>
+                                <div key={ep.id} className="rr-eprow">
+                                  <button className="rr-eprow-main" onClick={() => onOpenEpisode(showId, ep.id)}>
+                                    <div className="rr-poster small">{fullShow.image ? <img src={fullShow.image.medium} alt="" /> : <Tv size={14} />}</div>
+                                    <div className="rr-eprow-info">
+                                      <div className="rr-eprow-code">{epCode(ep.season, ep.number)}</div>
+                                      <div className="rr-eprow-title">{ep.name}</div>
+                                    </div>
+                                  </button>
+                                  <button className={`rr-dotcheck ${w ? "on" : ""}`} onClick={() => onToggleEp(fullShow, ep)}>
+                                    <Check size={12} />
+                                  </button>
+                                </div>
                               );
                             })}
                           </div>
@@ -1071,9 +1083,35 @@ function MovieDetail({ movie, onBack, onUpdate, onDelete }) {
 /* ============ STATS ============ */
 function StatsView({ data, episodesCache }) {
   const [tab, setTab] = useState("shows");
+  const [showSort, setShowSort] = useState("status");
+  const [movieSort, setMovieSort] = useState("status");
   const watchedEntries = Object.values(data.watchedLog);
   const movies = Object.values(data.movies);
   const watchedMovies = movies.filter(m => m.watchedAt);
+
+  const showList = useMemo(() => {
+    const list = Object.values(data.shows).map(show => {
+      const eps = episodesCache[show.id] || [];
+      const watchedCount = eps.filter(e => data.watchedLog[e.id]).length;
+      let status = "Not started";
+      if (eps.length > 0 && watchedCount === eps.length) status = "Completed";
+      else if (watchedCount > 0) status = "In progress";
+      return { show, status, watchedCount, total: eps.length };
+    });
+    const statusOrder = { "In progress": 0, "Not started": 1, "Completed": 2 };
+    if (showSort === "status") list.sort((a, b) => statusOrder[a.status] - statusOrder[b.status] || a.show.name.localeCompare(b.show.name));
+    else if (showSort === "name") list.sort((a, b) => a.show.name.localeCompare(b.show.name));
+    else list.sort((a, b) => b.show.addedAt - a.show.addedAt);
+    return list;
+  }, [data.shows, data.watchedLog, episodesCache, showSort]);
+
+  const movieList = useMemo(() => {
+    const list = movies.map(m => ({ m, status: m.watchedAt ? "Watched" : "Unwatched" }));
+    if (movieSort === "status") list.sort((a, b) => (a.status === b.status ? a.m.title.localeCompare(b.m.title) : (a.status === "Unwatched" ? -1 : 1)));
+    else if (movieSort === "name") list.sort((a, b) => a.m.title.localeCompare(b.m.title));
+    else list.sort((a, b) => b.m.addedAt - a.m.addedAt);
+    return list;
+  }, [movies, movieSort]);
 
   const showsStats = useMemo(() => {
     const totalMinutes = watchedEntries.reduce((s, e) => s + (e.runtime || 42), 0);
@@ -1156,10 +1194,14 @@ function StatsView({ data, episodesCache }) {
       </div>
 
       {tab === "shows" && (
-        showsStats.totalEpisodes === 0 ? (
-          <EmptyState icon={BarChart3} text="No viewing history yet." sub="Mark episodes watched to see your stats fill in." />
+        Object.keys(data.shows).length === 0 ? (
+          <EmptyState icon={BarChart3} text="No shows added yet." sub="Add shows from Explore to start seeing stats." />
         ) : (
           <>
+            {showsStats.totalEpisodes === 0 && (
+              <EmptyState icon={BarChart3} text="No viewing history yet." sub="Mark episodes watched to see your stats fill in." />
+            )}
+            {showsStats.totalEpisodes > 0 && <>
             <StatBlock label="Time spent watching episodes">
               <div className="rr-bigstat">
                 <span>{wt.months}<small>mo</small></span> <span>{wt.days}<small>d</small></span> <span>{wt.hours}<small>h</small></span>
@@ -1235,15 +1277,37 @@ function StatsView({ data, episodesCache }) {
                 ))}
               </div>
             </StatBlock>
+            </>}
+
+            <StatBlock label="Your shows">
+              <select className="rr-select" value={showSort} onChange={e => setShowSort(e.target.value)}>
+                <option value="status">Sort: watch status</option>
+                <option value="name">Sort: name</option>
+                <option value="recent">Sort: recently added</option>
+              </select>
+              <div className="rr-liblist">
+                {showList.map(({ show, status, watchedCount, total }) => (
+                  <div key={show.id} className="rr-librow">
+                    <span className="rr-librow-name">{show.name}</span>
+                    <span className={`rr-libstatus ${status.replace(" ", "-").toLowerCase()}`}>{status}</span>
+                    <span className="rr-librow-count">{watchedCount}/{total || "?"}</span>
+                  </div>
+                ))}
+              </div>
+            </StatBlock>
           </>
         )
       )}
 
       {tab === "movies" && (
-        watchedMovies.length === 0 ? (
-          <EmptyState icon={Film} text="No movie history yet." sub="Mark movies watched to see stats here." />
+        Object.keys(data.movies).length === 0 ? (
+          <EmptyState icon={Film} text="No movies added yet." sub="Add movies from the Movies tab to start seeing stats." />
         ) : (
           <>
+            {watchedMovies.length === 0 && (
+              <EmptyState icon={Film} text="No movie history yet." sub="Mark movies watched to see stats here." />
+            )}
+            {watchedMovies.length > 0 && <>
             <StatBlock label="Total movies watched"><div className="rr-bigstat"><span>{watchedMovies.length}</span></div></StatBlock>
             <StatBlock label="Time spent watching movies">
               {(() => { const mwt = formatWatchTime(watchedMovies.reduce((s, m) => s + (m.runtime || 120), 0));
@@ -1251,6 +1315,23 @@ function StatsView({ data, episodesCache }) {
             </StatBlock>
             <StatBlock label="Favorites"><div className="rr-bigstat"><span>{movies.filter(m => m.favorite).length}</span></div></StatBlock>
             <StatBlock label="Still to watch"><div className="rr-bigstat"><span>{movies.length - watchedMovies.length}</span></div></StatBlock>
+            </>}
+
+            <StatBlock label="Your movies">
+              <select className="rr-select" value={movieSort} onChange={e => setMovieSort(e.target.value)}>
+                <option value="status">Sort: watch status</option>
+                <option value="name">Sort: name</option>
+                <option value="recent">Sort: recently added</option>
+              </select>
+              <div className="rr-liblist">
+                {movieList.map(({ m, status }) => (
+                  <div key={m.id} className="rr-librow">
+                    <span className="rr-librow-name">{m.title}</span>
+                    <span className={`rr-libstatus ${status.toLowerCase()}`}>{status}</span>
+                  </div>
+                ))}
+              </div>
+            </StatBlock>
           </>
         )
       )}
@@ -1353,7 +1434,7 @@ function Style() {
       .rr-btn.small { padding:6px 10px; font-size:12px; }
       .rr-btn:disabled { opacity:0.5; cursor:default; }
 
-      .rr-segment { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:3px; margin-bottom:14px; }
+      .rr-segment { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:3px; margin-bottom:14px; position:sticky; top:0; z-index:5; box-shadow:0 8px 10px -8px var(--bg); }
       .rr-segment button { flex:1; background:transparent; border:none; color:var(--text-muted); font-size:12.5px; font-weight:600; padding:8px 4px; border-radius:7px; cursor:pointer; font-family:inherit; }
       .rr-segment button.active { background:var(--surface-2); color:var(--text); }
 
@@ -1450,12 +1531,13 @@ function Style() {
       .rr-season-count { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); margin-left:auto; }
       .rr-season-toggle { font-size:11px; color:var(--amber); font-weight:600; padding-left:4px; }
       .rr-eplist { display:flex; flex-direction:column; padding:0 8px 8px; gap:4px; }
-      .rr-eprow { display:flex; align-items:center; gap:8px; background:transparent; border:none; padding:6px; border-radius:8px; cursor:pointer; text-align:left; color:var(--text); font-family:inherit; }
+      .rr-eprow { display:flex; align-items:center; gap:8px; padding:6px; border-radius:8px; }
       .rr-eprow:hover { background:var(--surface-2); }
+      .rr-eprow-main { flex:1; min-width:0; display:flex; align-items:center; gap:8px; background:transparent; border:none; padding:0; cursor:pointer; text-align:left; color:var(--text); font-family:inherit; }
       .rr-eprow-info { flex:1; min-width:0; }
       .rr-eprow-code { font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--amber); font-weight:600; }
       .rr-eprow-title { font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-      .rr-dotcheck { width:20px; height:20px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; color:transparent; flex-shrink:0; }
+      .rr-dotcheck { width:20px; height:20px; border-radius:50%; border:1.5px solid var(--border); background:transparent; display:flex; align-items:center; justify-content:center; color:transparent; flex-shrink:0; cursor:pointer; padding:0; }
       .rr-dotcheck.on { background:var(--teal); border-color:var(--teal); color:#04211D; }
 
       .rr-epbanner { height:150px; border-radius:12px; overflow:hidden; background:var(--surface-2); display:flex; align-items:center; justify-content:center; color:var(--text-muted); margin-bottom:10px; }
@@ -1529,6 +1611,16 @@ function Style() {
 
       .rr-dbwarn { background:var(--red); color:#fff; font-size:11px; font-weight:600; text-align:center; padding:6px 10px; }
       .rr-dbwarn code { background:rgba(0,0,0,0.25); padding:1px 5px; border-radius:4px; }
+      .rr-select { width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); font-size:12.5px; font-family:inherit; padding:8px 10px; border-radius:8px; margin-bottom:10px; }
+      .rr-liblist { display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto; }
+      .rr-librow { display:flex; align-items:center; gap:8px; padding:8px 4px; border-top:1px solid var(--border); font-size:12.5px; }
+      .rr-librow:first-child { border-top:none; }
+      .rr-librow-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .rr-librow-count { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); flex-shrink:0; }
+      .rr-libstatus { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; flex-shrink:0; white-space:nowrap; }
+      .rr-libstatus.completed, .rr-libstatus.watched { background:rgba(79,216,196,0.15); color:var(--teal); }
+      .rr-libstatus.in-progress { background:rgba(255,178,56,0.15); color:var(--amber); }
+      .rr-libstatus.not-started, .rr-libstatus.unwatched { background:var(--surface-2); color:var(--text-muted); }
       .rr-nav { position:sticky; bottom:0; display:flex; background:var(--surface); border-top:1px solid var(--border); padding:8px 4px calc(8px + env(safe-area-inset-bottom,0px)); }
       .rr-navbtn { flex:1; background:transparent; border:none; color:var(--text-muted); display:flex; flex-direction:column; align-items:center; gap:3px; font-size:9.5px; padding:5px 0; cursor:pointer; font-family:inherit; }
       .rr-navbtn.active { color:var(--amber); }

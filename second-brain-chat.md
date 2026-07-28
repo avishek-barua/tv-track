@@ -54,3 +54,21 @@ User sent a follow-up `requirements.md` with two more asks:
 2. **"doesn't search movie"** — Explore's Search tab only ever queried TVmaze (shows only). Since there's no free movie catalog to search externally, movie search now filters the user's own `data.movies` by title and renders as a separate "Movies" section alongside "Shows" results — consistent with how Discover already splits the two. Shows an "Add a movie" shortcut when nothing local matches the query.
 
 Delivered `server.mjs` as a new file alongside the updated `App.jsx`. Updated `SETUP.md` to walk through running the server instead of the old localStorage-swap step.
+
+## Update — free deployment + a live bug
+User created a GitHub repo (folder structure: docs at repo root, actual app in a `rerun/` subfolder) and asked how to deploy for free. Recommended Render (backend, free web service) + Vercel (frontend, free hobby tier) — $0 for a low-traffic personal app. Two code changes were required first and got made: `server.mjs` reads `process.env.PORT` instead of hardcoding 4000, and `App.jsx` reads the API base URL from `import.meta.env.VITE_API_URL` instead of hardcoding localhost. Wrote `DEPLOY.md` with the actual dashboard steps.
+
+First deploy attempt failed: shows didn't load. Diagnosed from a network tab screenshot — the request was hitting `https://tv-track.onrender.com/` (bare root, 404) instead of `/api/data`, meaning `VITE_API_URL` was set without the `/api/data` suffix on Vercel. Straightforward fix (add the path, redeploy — Vercel bakes env vars in at build time so saving alone doesn't apply it).
+
+## Update — third requirements round (with screenshots)
+User sent `requirements.md` plus three annotated screenshots. Two of the three were real bugs, not missing features:
+1. **Sticky Watch List/Upcoming segment** — `.rr-segment` now uses `position: sticky; top: 0`, applied app-wide (also affects Discover/Search and the Stats sub-tabs) rather than just the one screen shown in the screenshot.
+2. **Episode check button "not working"** — actual root cause was a `<button>` nested inside another `<button>` (the check circle lived inside the row's clickable button), which is invalid HTML that browsers mishandle. Fixed by splitting into a clickable info row + a separate real button for the check.
+3. **Watch history still visible instead of scrolled past** — the fix from the previous round was implemented but had a latent bug: the `useEffect` driving the scroll was keyed on `groups.history.length`, which is populated immediately from saved `watchedLog` data, while the section it scrolls *to* (Watch Next) depends on `episodesCache`, which loads slightly later. Since `history.length` didn't change between those two renders, the effect never re-ran and the scroll silently never fired. Replaced with a ref callback (fires exactly when the target node mounts, on whatever render that turns out to be) — more robust than trying to guess the right effect dependency.
+
+Also implemented from the same requirements file:
+- Stats now has "Your shows" / "Your movies" sortable library lists (sort by watch status / name / recently added), visible even before any watch history exists.
+
+Explicitly deferred per the user's own "for future, don't implement now" note: auto-adding a show to the watch list when one of its episodes gets marked watched. Logged in `requirements.md` under a Backlog section, not built.
+
+Added two hard-won lessons to `CLAUDE.md`'s conventions so they don't get relearned: never nest interactive buttons, and prefer ref callbacks over effects for DOM nodes that depend on async-loaded data.

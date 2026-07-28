@@ -35,10 +35,11 @@ Added beyond the original (the two features the user explicitly asked for): AI-p
 - Persistence: `server.mjs` (Express) reading/writing `db.json` on disk, replacing the earlier `localStorage`-based approach
 
 ## File map
-- `App.jsx` — the app (single React component), now the canonical/maintained file, running locally via Vite
+- `App.jsx` — the app (single React component), now the canonical/maintained file, running locally via Vite. Actual repo layout: a `rerun/` subfolder holds the Vite project (`package.json`, `server.mjs`, `src/`); docs sit at repo root.
 - `server.mjs` — the JSON-database server (`GET/POST /api/data`, writes `db.json`)
 - `rerun.jsx` — superseded; the original Claude-artifact version, kept only for history
 - `SETUP.md` — how to run it locally (Vite scaffold, `server.mjs`, AI backend note)
+- `DEPLOY.md` — free deployment steps (Render for `server.mjs`, Vercel for the frontend, via `VITE_API_URL` / `PORT` env vars)
 - `CLAUDE.md` — conventions for future Claude Code sessions on this repo
 - `requirements.md` — running checklist of user-requested behavior fixes/additions (user-authored, updated as items land)
 - `second-brain-chat.md` — narrative of this build conversation
@@ -47,13 +48,20 @@ Added beyond the original (the two features the user explicitly asked for): AI-p
 ## Interaction details established since first build
 - **Nav persistence**: bottom nav shows on every screen, including detail views; tapping it exits whatever detail view is open.
 - **Skipped-episode guard**: marking an episode watched checks for earlier unwatched episodes of the same show first and offers to mark them too, rather than letting gaps happen silently — a small usability improvement over just letting people mark anything in any order.
-- **Watch history placement**: kept literally above Watch Next in the DOM (true to the original), but the screen auto-scrolls past it so Watch Next is what you see first — history is "scroll up to see it," not hidden away in a separate tab.
+- **Watch history placement**: kept literally above Watch Next in the DOM (true to the original), but the screen scrolls past it on load via a ref callback (not a `useEffect` — that approach had a real bug, see below) so Watch Next is what you see first.
 - **Discover structure**: three sections — Top recommended for you (genre-overlap personalization), Shows (general trending), Movies (manual-add prompt, no fake data since there's no free catalog API for movies).
 - **Search structure**: mirrors Discover — Shows queries TVmaze live, Movies filters the user's own tracked list by title (with a shortcut to add a new one if nothing matches).
 - **Persistence failure is visible, not silent**: a `dbError` state surfaces a red banner if `server.mjs` isn't reachable, specifically because the earlier localStorage bug failed silently and went unnoticed for a while.
+- **Sticky segmented controls**: every `.rr-segment` (Watch List/Upcoming, Discover/Search, Stats' Shows/Movies) stays pinned to the top of the screen while scrolling.
+- **Stats library lists**: "Your shows" / "Your movies" blocks list everything added, sortable by watch status / name / recently added, and show up even with zero watch history — not gated behind the deeper stats.
+- **Two real bugs found and fixed while implementing "obvious" requirements** (worth remembering as a pattern): a `<button>` nested inside another `<button>` for the episode check circle (invalid HTML, silently breaks in browsers), and a `useEffect` for the watch-history auto-scroll keyed on a dependency that didn't actually change when the target element appeared (fixed with a ref callback instead). Both are now called out explicitly in `CLAUDE.md`.
+
+## Deployment
+Free stack: Render (free web service) for `server.mjs`, Vercel (free hobby tier) for the built frontend. Required `server.mjs` to read `process.env.PORT` and `App.jsx` to read the API base URL from `import.meta.env.VITE_API_URL` — both hardcoded to localhost before, which silently breaks once frontend and backend live on different hosts. One real deploy issue hit and fixed: `VITE_API_URL` was set to the bare Render URL without the `/api/data` path.
 
 ## Possible future additions (not requested yet, just noted)
 - Custom Lists (like TV Time's user-created collections)
 - An `/api/recommend` route on `server.mjs` so the AI recs feature can hold the Anthropic key server-side
 - A real movie data source if a free/keyed API becomes worth adding
 - Data export/import or backup rotation for `db.json`, since it's currently a single unversioned file
+- **Explicitly deferred by the user ("for future, don't implement now")**: auto-adding a show to the watch list the moment one of its episodes is marked watched
