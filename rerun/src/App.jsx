@@ -1412,12 +1412,12 @@ function Style() {
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
       .rr-root { --bg:#121316; --surface:#1B1D22; --surface-2:#24272E; --border:#2E323B; --text:#EDEAE4; --text-muted:#8B8F98; --amber:#FFB238; --amber-dim:#7A5A20; --teal:#4FD8C4; --red:#FF5C5C;
-        font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; justify-content:center;
+        font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); height:100vh; height:100dvh; display:flex; justify-content:center;
         background-image: radial-gradient(circle at 50% 0%, #1a1c21 0%, #121316 60%); }
       .rr-loading { align-items:center; justify-content:center; }
       .rr-root .spin { animation: rr-spin 0.9s linear infinite; color: var(--amber); }
       @keyframes rr-spin { to { transform: rotate(360deg); } }
-      .rr-frame { width:100%; max-width:460px; min-height:100vh; background:var(--bg); border-left:1px solid var(--border); border-right:1px solid var(--border); display:flex; flex-direction:column; position:relative; }
+      .rr-frame { width:100%; max-width:460px; height:100vh; height:100dvh; overflow:hidden; background:var(--bg); border-left:1px solid var(--border); border-right:1px solid var(--border); display:flex; flex-direction:column; position:relative; }
       .rr-content { flex:1; overflow-y:auto; padding-bottom:84px; }
       .rr-view { padding:18px 16px 8px; }
       .rr-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; min-height:30px; }

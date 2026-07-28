@@ -72,3 +72,10 @@ Also implemented from the same requirements file:
 Explicitly deferred per the user's own "for future, don't implement now" note: auto-adding a show to the watch list when one of its episodes gets marked watched. Logged in `requirements.md` under a Backlog section, not built.
 
 Added two hard-won lessons to `CLAUDE.md`'s conventions so they don't get relearned: never nest interactive buttons, and prefer ref callbacks over effects for DOM nodes that depend on async-loaded data.
+
+## Update — the sticky/scroll fixes didn't actually take, found the real cause
+User reported both the sticky segment fix and the watch-history scroll fix from the previous round didn't work in practice. Rather than re-apply the same patches, traced it to a shared root cause one layer down: `.rr-root` and `.rr-frame` used `min-height: 100vh` instead of `height: 100vh`, so they grew to fit their content instead of staying capped at the viewport. That meant `.rr-content`'s `overflow-y:auto` never became a real, bounded scroll container — its box just grew to match its content, so nothing ever technically overflowed it, so it never got an actual internal scroll offset. The whole page scrolled instead (window-level scroll).
+
+That one thing broke two features at once: `position: sticky` needs a real scrolling ancestor with a genuine scroll offset to react to, not just the CSS property present on an element — since `.rr-content` was declared with `overflow-y:auto` but never actually scrolled, sticky elements inside it just sat still. And the watch-history auto-scroll (`scrollIntoView` on the Watch Next ref) had nothing bounded to scroll within either.
+
+Fix: capped `.rr-root`/`.rr-frame` to `height: 100vh` / `100dvh` and added `overflow: hidden` on `.rr-frame`, forcing `.rr-content` to become the genuine internal scrollport. Both features now work off the same real fix rather than needing separate patches. Added this as an explicit "don't relax this" convention in `CLAUDE.md` since it's a subtle enough interaction that it could easily get undone by someone "simplifying" the layout later.
