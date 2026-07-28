@@ -1,5 +1,5 @@
 ## full app
-- [x] watchlist and upcoming tab should be sticky — the segmented control (Watch List/Upcoming, Discover/Search, Shows/Movies in Stats) now stays pinned to the top of the screen while the list scrolls underneath it
+- [x] watchlist and upcoming tab should be sticky — the segmented control (Watch List/Upcoming, Discover/Search, Shows/Movies in Stats) now stays pinned to the top of the screen while the list scrolls underneath it. note: this didn't get implemented
 
 ## shows
 - [ ] make watch history visible only when i scroll up.
