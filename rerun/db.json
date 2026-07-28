@@ -34675,6 +34675,22 @@
       "mood": null,
       "whereWatched": null
     },
+    "1344349": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 1,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
     "1346372": {
       "watchedAt": 1784713050221,
       "showId": 269,
@@ -35128,6 +35144,86 @@
       "mood": null,
       "whereWatched": null
     },
+    "1479021": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 2,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1479022": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 3,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1479023": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 4,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1479024": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 5,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1479025": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 6,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
     "1481513": {
       "watchedAt": 1784713404469,
       "showId": 1505,
@@ -35281,6 +35377,22 @@
       "mood": null,
       "whereWatched": null
     },
+    "1510254": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 7,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
     "1514811": {
       "watchedAt": 1784713404469,
       "showId": 1505,
@@ -35332,6 +35444,22 @@
       "mood": null,
       "whereWatched": null
     },
+    "1519995": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 8,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
     "1523553": {
       "watchedAt": 1784713404469,
       "showId": 1505,
@@ -35366,6 +35494,22 @@
       "mood": null,
       "whereWatched": null
     },
+    "1528002": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 9,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
     "1531845": {
       "watchedAt": 1784713404469,
       "showId": 1505,
@@ -35395,6 +35539,38 @@
         "Adventure",
         "Anime",
         "Fantasy"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1531969": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 10,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1536033": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 11,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
       ],
       "rating": null,
       "mood": null,
@@ -35650,6 +35826,22 @@
         "Adventure",
         "Anime",
         "Fantasy"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1542765": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 12,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
       ],
       "rating": null,
       "mood": null,
@@ -36096,6 +36288,22 @@
       "mood": null,
       "whereWatched": null
     },
+    "1610598": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 13,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
     "1610956": {
       "watchedAt": 1784713405362,
       "showId": 1505,
@@ -36273,6 +36481,150 @@
         "Adventure",
         "Anime",
         "Fantasy"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1629870": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 14,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1629871": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 15,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1629872": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 16,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1629873": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 17,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1629874": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 18,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1629875": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 19,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1629876": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 20,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1629877": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 21,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1629878": {
+      "watchedAt": 1785225323135,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 3,
+      "number": 22,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
       ],
       "rating": null,
       "mood": null,
@@ -37581,6 +37933,22 @@
       "mood": null,
       "whereWatched": null
     },
+    "1955662": {
+      "watchedAt": 1785225385491,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 4,
+      "number": 1,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
     "1966067": {
       "watchedAt": 1784713406186,
       "showId": 1505,
@@ -37644,6 +38012,22 @@
         "Adventure",
         "Anime",
         "Fantasy"
+      ],
+      "rating": null,
+      "mood": null,
+      "whereWatched": null
+    },
+    "1981471": {
+      "watchedAt": 1785225385491,
+      "showId": 919,
+      "showName": "Attack on Titan",
+      "season": 4,
+      "number": 2,
+      "runtime": 25,
+      "genres": [
+        "Anime",
+        "Fantasy",
+        "Horror"
       ],
       "rating": null,
       "mood": null,
