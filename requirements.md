@@ -1,4 +1,5 @@
 ## full app
+- [x] production data loss on idle restart — Render's free tier has an ephemeral filesystem; `db.json` was getting wiped every time the service woke from sleep. Fixed by adding optional Postgres support to `server.mjs` (falls back to the local file automatically when `DATABASE_URL` isn't set, so local dev is unchanged). Using Neon (free Postgres, auto-resumes on idle rather than requiring manual restore). See `DEPLOY.md` for setup.
 - [x] watchlist and upcoming tab should be sticky — the previous CSS fix (`position:sticky` on `.rr-segment`) was correct but inert, because of a deeper bug: `.rr-root`/`.rr-frame` used `min-height:100vh` instead of `height:100vh`, so they grew with content instead of staying capped. That meant `.rr-content`'s `overflow-y:auto` never became a real internal scrollbox (nothing ever overflowed its own box — the box just grew to match), so it never got an actual scroll offset for sticky to react to. Capped `.rr-root`/`.rr-frame` to `100vh`/`100dvh` and gave `.rr-frame` `overflow:hidden`, which forces `.rr-content` to be the genuine scrolling container. Sticky segments now actually work.
 
 ## shows

@@ -32,7 +32,7 @@ Added beyond the original (the two features the user explicitly asked for): AI-p
 - Shows/episodes: TVmaze API — free, no key, will outlive TV Time itself
 - Movies: no free API with adequate data available without a key → manual entry only; "search" for movies searches the user's own added titles, not an external catalog
 - AI recs: direct call to Anthropic's API (works in Claude's artifact sandbox; needs a route on `server.mjs` to run safely outside it — see SETUP.md)
-- Persistence: `server.mjs` (Express) reading/writing `db.json` on disk, replacing the earlier `localStorage`-based approach
+- Persistence: `server.mjs` (Express). Local dev writes to `db.json` on disk. Production uses Postgres (via `pg`, Neon's free tier) when `DATABASE_URL` is set — required because Render's free tier filesystem doesn't survive idle-restarts, which was silently wiping `db.json` in production. Single `rerun_data` table, one JSONB row, upserted whole each save — same "one blob" model regardless of backend.
 
 ## File map
 - `App.jsx` — the app (single React component), now the canonical/maintained file, running locally via Vite. Actual repo layout: a `rerun/` subfolder holds the Vite project (`package.json`, `server.mjs`, `src/`); docs sit at repo root.
@@ -58,7 +58,7 @@ Added beyond the original (the two features the user explicitly asked for): AI-p
 - **Two real bugs found and fixed while implementing "obvious" requirements** (worth remembering as a pattern): a `<button>` nested inside another `<button>` for the episode check circle (invalid HTML, silently breaks in browsers), and a `useEffect` for the watch-history auto-scroll keyed on a dependency that didn't actually change when the target element appeared (fixed with a ref callback instead). Both are now called out explicitly in `CLAUDE.md`.
 
 ## Deployment
-Free stack: Render (free web service) for `server.mjs`, Vercel (free hobby tier) for the built frontend. Required `server.mjs` to read `process.env.PORT` and `App.jsx` to read the API base URL from `import.meta.env.VITE_API_URL` — both hardcoded to localhost before, which silently breaks once frontend and backend live on different hosts. One real deploy issue hit and fixed: `VITE_API_URL` was set to the bare Render URL without the `/api/data` path.
+Free stack: Render (free web service) for `server.mjs`, Vercel (free hobby tier) for the built frontend, Neon (free Postgres) for persistence in production. Required `server.mjs` to read `process.env.PORT` and `App.jsx` to read the API base URL from `import.meta.env.VITE_API_URL` — both hardcoded to localhost before, which silently breaks once frontend and backend live on different hosts. Real deploy issues hit and fixed: `VITE_API_URL` set to the bare Render URL without the `/api/data` path; and — more significant — Render's free-tier filesystem being ephemeral, silently wiping `db.json` on every idle-restart in production (worked fine locally, only broke deployed). `server.mjs` now auto-switches to Postgres when `DATABASE_URL` is present, falling back to the local file otherwise, so local dev needs no signup. (First implemented against Upstash Redis, then swapped to Postgres/Neon per the user's preference for something more standard — same auto-detect pattern either way, just a different backend behind it.)
 
 ## Possible future additions (not requested yet, just noted)
 - Custom Lists (like TV Time's user-created collections)

@@ -17,9 +17,23 @@ Also add `db.json` to `.gitignore` if it isn't already — it's your personal da
 6. Instance type: **Free**
 7. Deploy. You'll get a URL like `https://rerun-xxxx.onrender.com`.
 
-**Free-tier caveats:**
-- The service sleeps after 15 minutes of no traffic — first request after that takes ~30–50s to wake up.
-- The disk `db.json` lives on is not guaranteed to survive every redeploy. Fine for a personal hobby project; don't treat it as a real backup. If that ever matters, swap the file-based store for a free hosted KV/DB (e.g. Upstash Redis's free tier) later — not needed to get started.
+**Free-tier caveat:**
+- The service sleeps after 15 minutes of no traffic — first request after that takes ~30–50s to wake up. That's just slow, not data loss.
+
+**Important — persistence:** Render's free tier has an *ephemeral* filesystem. Every time the service wakes back up from sleep, it can be a fresh container, and `db.json` gets wiped. Fix this with a real free Postgres database before you rely on the deployed app (see below) — `server.mjs` already supports it, you just need one environment variable.
+
+## 1b. Persistent storage → Neon Postgres (free, no card, auto-resumes)
+1. Sign up free at [neon.tech](https://neon.tech).
+2. Create a project — a database is created automatically, free tier.
+3. On the project dashboard, copy the **connection string** (starts with `postgres://...`, includes `?sslmode=require`).
+4. Add `pg` to your dependencies before pushing: `npm install pg`
+5. On Render → your web service → **Environment** tab → add:
+   - `DATABASE_URL` = (the connection string from step 3)
+6. Render redeploys automatically. `server.mjs` detects `DATABASE_URL`, creates a small table on first boot, and stores everything there instead of the local file. Check the deploy logs for `(Postgres)` in the startup line to confirm.
+
+Locally, leave `DATABASE_URL` unset — `server.mjs` falls back to `db.json` on disk automatically, so nothing changes about local dev.
+
+Why Neon specifically: its free tier suspends the underlying compute when idle (to stay free) but **auto-resumes on the very next query**, with no manual dashboard action — unlike Supabase's free tier, which fully pauses a project after a week of inactivity and needs you to click "restore" in the dashboard before it'll respond again. For a personal app that might sit untouched for a while, that difference matters.
 
 ## 2. Frontend → Vercel (free tier)
 1. On [vercel.com](https://vercel.com): **Add New → Project** → import the same repo.
@@ -33,4 +47,4 @@ Also add `db.json` to `.gitignore` if it isn't already — it's your personal da
 Still needs its own solution (see `SETUP.md`) — nothing here changes that.
 
 ## Cost
-Both Render's free web service tier and Vercel's free hobby tier are $0 for this kind of low-traffic personal app.
+Render's free web service tier, Vercel's free hobby tier, and Neon's free Postgres tier are all $0 for this kind of low-traffic personal app.

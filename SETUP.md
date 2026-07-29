@@ -9,7 +9,7 @@
 ```bash
 npm create vite@latest rerun -- --template react
 cd rerun
-npm install lucide-react recharts express cors
+npm install lucide-react recharts express cors pg
 ```
 
 ## 2. Drop in the files

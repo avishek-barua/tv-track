@@ -11,7 +11,7 @@ Running locally now (Vite + React), not in claude.ai anymore. `App.jsx` is the s
 - lucide-react (icons), recharts (charts)
 - TVmaze API (`https://api.tvmaze.com`) for show/episode data — free, no key
 - No movie API key available — movies are manually entered by the user; movie "search" matches against the user's own added titles, not an external catalog
-- Persistence: `server.mjs`, a tiny Express server serving `GET/POST http://localhost:4000/api/data` locally (port comes from `process.env.PORT` when deployed), backed by `db.json` on disk. `App.jsx` fetches on load and POSTs the full data blob on every change (no partial updates). The frontend's API base URL is `import.meta.env.VITE_API_URL`, falling back to localhost — set this env var when deploying. Shows a red banner (`dbError` state) if the server is unreachable rather than failing silently.
+- Persistence: `server.mjs`. Locally, a tiny Express server serving `GET/POST http://localhost:4000/api/data` (port from `process.env.PORT` when deployed), backed by `db.json` on disk. In production, it automatically switches to Postgres (a single `rerun_data` table holding one JSONB row) whenever `DATABASE_URL` is present — required because Render's free tier has an ephemeral filesystem that wipes `db.json` on every idle-restart. Using Neon for the free Postgres host (auto-resumes on the next query when idle, unlike Supabase's free tier which fully pauses after a week and needs manual restore). Don't remove the local-file fallback; it's what keeps local dev signup-free. The frontend's API base URL is `import.meta.env.VITE_API_URL`, falling back to localhost — set this env var when deploying. Shows a red banner (`dbError` state) if the server is unreachable rather than failing silently.
 
 ## Data model
 ```
@@ -24,7 +24,8 @@ Running locally now (Vite + React), not in claude.ai anymore. `App.jsx` is the s
 Everything derives from these three objects — no separate "watchlist" flag; a show's status (watch next / stale / not started) is computed live from `watchedLog` + episode air dates.
 
 ## Conventions
-- Keep the data model a single JSON blob (`{shows, watchedLog, movies}`) written whole on every change — don't split `db.json` into multiple files or add partial-update endpoints unless there's a real performance reason to.
+- Keep the data model a single JSON blob (`{shows, watchedLog, movies}`) written whole on every change — don't split `db.json`/the Redis value into multiple keys or add partial-update endpoints unless there's a real performance reason to.
+- `server.mjs`'s storage backend auto-selects: Postgres if `DATABASE_URL` is present, else local `db.json`. Keep both paths working — don't hardcode one and drop the other; local dev depends on the file fallback staying signup-free, and production depends on Postgres being used whenever it's configured (Render's free tier wipes the local file on every idle-restart).
 - Don't add login/auth/multi-user to `server.mjs` — it's a local single-user convenience layer, not a real backend. Don't add it to the frontend either.
 - Bottom nav renders on every screen, including detail views (shows/episodes/movies). Tapping a nav item always clears the current detail view and jumps to that section.
 - Marking an episode watched goes through `requestMarkWatched` (in `App`), not the raw `toggleEpisodeWatched`, wherever it's a user-initiated "mark this one" action. It checks for earlier unwatched episodes of the same show and, if any exist, opens a confirm dialog ("Just this one" vs "Mark all previous") before writing to `watchedLog`. Only bypass this wrapper for: unmarking (toggling off), season-level "Mark all" (already an explicit bulk action), and rating/mood/where-watched patches on an already-watched episode.
